@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
-import onnxruntime as ort
+# import onnxruntime as ort
+import tritonclient.grpc as grpcclient
 from .config import settings
 from .schemas import BBoxInfo
 
@@ -17,18 +18,21 @@ class PersonDetector:
     INPUT_SIZE = 640
 
     def __init__(self, model_path: str = None, conf: float = None):
-        self.model_path = model_path or settings.MODEL_PATH
+        # self.model_path = model_path or settings.MODEL_PATH
+        # self.conf = conf or settings.CONFIDENCE_THRESHOLD
+        # self.session: ort.InferenceSession | None = None
+        # self._load_model()
         self.conf = conf or settings.CONFIDENCE_THRESHOLD
-        self.session: ort.InferenceSession | None = None
-        self._load_model()
+        self.model_name = settings.TRITON_MODEL_NAME
+        self.client = grpcclient.InferenceServerClient(url=settings.TRITON_URL)
 
-    def _load_model(self):
-        """Load ONNX model."""
-        providers = ["CPUExecutionProvider"]
-        self.session = ort.InferenceSession(self.model_path, providers=providers)
+    # def _load_model(self):
+    #     """Load ONNX model."""
+    #     providers = ["CPUExecutionProvider"]
+    #     self.session = ort.InferenceSession(self.model_path, providers=providers)
 
-        input_info = self.session.get_inputs()[0]
-        self.input_name = input_info.name
+    #     input_info = self.session.get_inputs()[0]
+    #     self.input_name = input_info.name
 
     def _preprocess(self, image: np.ndarray) -> tuple[np.ndarray, float, tuple[int, int]]:
         """
@@ -100,8 +104,18 @@ class PersonDetector:
     def detect(self, image: np.ndarray) -> list[BBoxInfo]:
         """Detect người trong ảnh, trả về danh sách BBoxInfo."""
         blob, ratio, pad = self._preprocess(image)
-        outputs = self.session.run(None, {self.input_name: blob})
-        return self._postprocess(outputs[0], ratio, pad)
+        # outputs = self.session.run(None, {self.input_name: blob})
+        input_tensor = grpcclient.InferInput("images", blob.shape, "FP32")
+        input_tensor.set_data_from_numpy(blob)
+
+        result = self.client.infer(
+            model_name=self.model_name,
+            inputs=[input_tensor]
+        )
+
+        output = result.as_numpy("output0")
+
+        return self._postprocess(output, ratio, pad)
 
     def is_loaded(self) -> bool:
-        return self.session is not None
+        return self.client.is_model_ready(self.model_name)

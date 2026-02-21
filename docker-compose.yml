@@ -15,7 +15,16 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
-
+  # ── Triton ──
+  triton:
+    image: nvcr.io/nvidia/tritonserver:25.05-py3
+    ports:
+      - "8001:8001"
+      - "8002:8002"
+      - "8003:8003"
+    volumes:
+      - ./backend/model_repository:/models
+    command: ["tritonserver", "--model-repository=/models"]
   # ── Backend (FastAPI) ──
   backend:
     build: ./backend
@@ -23,15 +32,18 @@ services:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql://counter:counter_pass@db:5432/object_counter
-      MODEL_PATH: models/yolo26m.onnx
+      # MODEL_PATH: models/yolo26m.onnx
       CONFIDENCE_THRESHOLD: 0.5
       CORS_ORIGINS: '["http://localhost:3000"]'
+      TRITON_URL: triton:8001
     volumes:
       - backend_results:/app/static/results
       - ./backend/models:/app/models
     depends_on:
       db:
         condition: service_healthy
+      triton:
+        condition: service_started
 
   # ── Frontend (Next.js) ──
   frontend:

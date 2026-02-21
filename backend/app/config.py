@@ -9,7 +9,9 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql://counter:counter_pass@localhost:5432/object_counter"
 
     # ── YOLO Model ──
-    MODEL_PATH: str = "models/yolo26m.onnx"
+    # MODEL_PATH: str = "models/yolo26m.onnx"
+    TRITON_URL: str = "localhost:8001"
+    TRITON_MODEL_NAME: str = "pedestrian_detection"
     CONFIDENCE_THRESHOLD: float = 0.5
 
     # ── File Storage ──
