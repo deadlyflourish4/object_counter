@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+venv/
+.venv/
+
+# ONNX models (too large for git)
+*.onnx
+*.pt
+backend/models/
+backend/model_repository/*/1/model.onnx
+
+# Uploads
+backend/static/results/
+
+# Node
+node_modules/
+frontend/.next/
+frontend/out/
+
+# Docker
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Jupyter
+.ipynb_checkpoints/

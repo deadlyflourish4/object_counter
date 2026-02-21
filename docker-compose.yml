@@ -1,0 +1,48 @@
+services:
+  # ── PostgreSQL ──
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: object_counter
+      POSTGRES_USER: counter
+      POSTGRES_PASSWORD: counter_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U counter -d object_counter"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ── Backend (FastAPI) ──
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://counter:counter_pass@db:5432/object_counter
+      MODEL_PATH: models/yolo26m.onnx
+      CONFIDENCE_THRESHOLD: 0.5
+      CORS_ORIGINS: '["http://localhost:3000"]'
+    volumes:
+      - backend_results:/app/static/results
+      - ./backend/models:/app/models
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ── Frontend (Next.js) ──
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+  backend_results:
