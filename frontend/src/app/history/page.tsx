@@ -191,22 +191,57 @@ export default function HistoryPage() {
                     {/* Pagination */}
                     <div className={styles.pagination}>
                         <button
-                            className={styles.pageButton}
+                            className={styles.pageCircle}
                             disabled={page <= 1}
                             onClick={() => setPage(page - 1)}
+                            aria-label="Previous page"
                         >
-                            ← Prev
+                            ‹
                         </button>
-                        <span className={styles.pageInfo}>
-                            Page {data.page} of {data.total_pages}
-                            <span className={styles.totalCount}> ({data.total} records)</span>
-                        </span>
+
+                        {(() => {
+                            const pages: (number | string)[] = [];
+                            const total = data.total_pages;
+
+                            if (total <= 7) {
+                                for (let i = 1; i <= total; i++) pages.push(i);
+                            } else {
+                                pages.push(1);
+                                if (page > 3) pages.push("...");
+
+                                const start = Math.max(2, page - 1);
+                                const end = Math.min(total - 1, page + 1);
+                                for (let i = start; i <= end; i++) pages.push(i);
+
+                                if (page < total - 2) pages.push("...");
+                                pages.push(total);
+                            }
+
+                            return pages.map((p, idx) =>
+                                typeof p === "string" ? (
+                                    <span key={`ellipsis-${idx}`} className={styles.ellipsis}>
+                                        ···
+                                    </span>
+                                ) : (
+                                    <button
+                                        key={p}
+                                        className={`${styles.pageCircle} ${p === page ? styles.pageCircleActive : ""
+                                            }`}
+                                        onClick={() => setPage(p)}
+                                    >
+                                        {p}
+                                    </button>
+                                )
+                            );
+                        })()}
+
                         <button
-                            className={styles.pageButton}
+                            className={styles.pageCircle}
                             disabled={page >= data.total_pages}
                             onClick={() => setPage(page + 1)}
+                            aria-label="Next page"
                         >
-                            Next →
+                            ›
                         </button>
                     </div>
                 </>

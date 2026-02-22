@@ -9,7 +9,6 @@ export default function Navbar() {
     return (
         <nav className={styles.navbar}>
             <div className={styles.brand}>
-                <span className={styles.icon}>🎯</span>
                 <span className={styles.title}>Person Counter</span>
             </div>
             <div className={styles.links}>

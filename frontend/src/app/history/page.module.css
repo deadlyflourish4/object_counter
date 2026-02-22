@@ -248,38 +248,52 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
-    padding: 1rem 0;
+    gap: 0.4rem;
+    padding: 1.5rem 0;
 }
 
-.pageButton {
-    padding: 0.5rem 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    background: transparent;
+.pageCircle {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
     color: rgba(255, 255, 255, 0.6);
-    font-size: 0.85rem;
+    font-size: 0.9rem;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.pageButton:hover:not(:disabled) {
-    border-color: rgba(102, 126, 234, 0.4);
+.pageCircle:hover:not(:disabled):not(.pageCircleActive) {
+    background: rgba(255, 255, 255, 0.15);
     color: white;
 }
 
-.pageButton:disabled {
-    opacity: 0.3;
+.pageCircle:disabled {
+    opacity: 0.25;
     cursor: not-allowed;
 }
 
-.pageInfo {
-    font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.5);
+.pageCircleActive {
+    background: #4a7cf7;
+    color: white;
+    font-weight: 700;
+    box-shadow: 0 2px 10px rgba(74, 124, 247, 0.4);
 }
 
-.totalCount {
+.ellipsis {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: rgba(255, 255, 255, 0.3);
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
 }
 
 /* ── Modal ── */

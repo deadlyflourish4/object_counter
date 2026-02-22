@@ -53,7 +53,7 @@ export default function UploadPage() {
           onClick={handleDetect}
           disabled={!selectedFile || isLoading}
         >
-          {isLoading ? "Detecting..." : "🔍 Detect People"}
+          {isLoading ? "Detecting..." : "Detect People"}
         </button>
       </div>
 
