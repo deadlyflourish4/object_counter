@@ -8,3 +8,4 @@ python-multipart==0.0.9
 opencv-python-headless==4.10.0.84
 numpy==1.26.4
 tritonclient[grpc]==2.49.0
+aiokafka==0.11.0

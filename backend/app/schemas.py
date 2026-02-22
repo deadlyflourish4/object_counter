@@ -45,3 +45,28 @@ class BBoxInfo(BaseModel):
 class DetailedDetectionResponse(DetectionResponse):
     """Response mở rộng kèm danh sách bounding boxes."""
     boxes: list[BBoxInfo] = []
+
+
+# ── Kafka Task Schemas ──
+
+class TaskSubmitResponse(BaseModel):
+    """Response khi submit detect async qua Kafka."""
+    task_id: str
+    status: str = "processing"
+    message: str = "Detection task submitted"
+
+
+class TaskStatusResponse(BaseModel):
+    """Response khi query trạng thái task."""
+    task_id: str
+    status: str  # processing | completed | failed
+    created_at: datetime
+    completed_at: datetime | None = None
+    original_filename: str
+
+    # Có khi status = completed
+    num_detections: int | None = None
+    result_image_url: str | None = None
+    error_message: str | None = None
+
+    model_config = {"from_attributes": True}

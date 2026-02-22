@@ -15,6 +15,26 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+  # ── Kafka ──
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+  
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+      
   # ── Triton ──
   triton:
     image: nvcr.io/nvidia/tritonserver:25.05-py3
@@ -36,14 +56,37 @@ services:
       CONFIDENCE_THRESHOLD: 0.5
       CORS_ORIGINS: '["http://localhost:3000"]'
       TRITON_URL: triton:8001
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     volumes:
       - backend_results:/app/static/results
+      - backend_uploads:/app/static/results/uploads
       - ./backend/models:/app/models
     depends_on:
       db:
         condition: service_healthy
       triton:
         condition: service_started
+      kafka:
+        condition: service_started
+
+  # ── Worker (Kafka Consumer) ──
+  worker:
+    build: ./backend
+    command: ["python", "-m", "worker"]
+    environment:
+      DATABASE_URL: postgresql://counter:counter_pass@db:5432/object_counter
+      TRITON_URL: triton:8001
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      CONFIDENCE_THRESHOLD: 0.5
+    volumes:
+      - backend_results:/app/static/results
+      - backend_uploads:/app/static/results/uploads
+    depends_on:
+      - db
+      - triton
+      - kafka
+    deploy:
+      replicas: 2
 
   # ── Frontend (Next.js) ──
   frontend:
@@ -58,3 +101,4 @@ services:
 volumes:
   pgdata:
   backend_results:
+  backend_uploads:

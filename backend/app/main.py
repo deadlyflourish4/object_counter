@@ -6,15 +6,23 @@ from contextlib import asynccontextmanager
 from .config import settings
 from .database import engine, Base
 from .routes import detection, history
+from .kafka_producer import kafka_producer
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Startup
     Base.metadata.create_all(bind=engine)
-
     settings.UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    (settings.UPLOAD_DIR / "uploads").mkdir(parents=True, exist_ok=True)
+
+    # Start Kafka producer
+    await kafka_producer.start()
 
     yield
 
+    # Shutdown
+    await kafka_producer.stop()
     engine.dispose()
 
 app = FastAPI(
@@ -34,9 +42,12 @@ app.add_middleware(
 
 # ── Static Files ──
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
 # ── Routes ──
 app.include_router(detection.router, prefix="/api", tags=["Detection"])
 app.include_router(history.router, prefix="/api", tags=["History"])
+
+
 @app.get("/health")
 async def health():
     return {"status": "ok"}

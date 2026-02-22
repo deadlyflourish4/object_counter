@@ -18,6 +18,10 @@ class Settings(BaseSettings):
     UPLOAD_DIR: Path = Path("static/results")
     MAX_UPLOAD_SIZE: int = 10 * 1024 * 1024  # 10MB
 
+    # ── Kafka ──
+    KAFKA_BOOTSTRAP_SERVERS: str = "localhost:9092"
+    KAFKA_TOPIC: str = "detection-requests"
+
     # ── CORS ──
     CORS_ORIGINS: list[str] = ["http://localhost:3000"]
 
